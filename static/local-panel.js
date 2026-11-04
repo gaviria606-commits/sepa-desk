@@ -19,6 +19,13 @@
   function render(){
     const j = (data && data.jobs) || {}, sc = (data && data.schedule) || {};
     const d = j.daily || {};
+    const narrow = window.innerWidth < 700;
+    if(narrow && !open){
+      el.innerHTML = `<button data-toggle style="${btn};display:flex;gap:6px;align-items:center"><span style="color:${dot(d.status)}">●</span> Jobs</button>`;
+      el.style.padding = "4px";
+      return;
+    }
+    el.style.padding = "8px 10px";
     let h = `<span title="Daily routine"><span style="color:${dot(d.status)}">●</span> Daily ${esc(d.status || "not run")} · ${esc(when(d.finished || d.started))}</span>`;
     h += `<button data-job="daily" style="${btn}">Run daily</button><button data-job="backup" style="${btn}">Backup</button>`;
     h += `<button data-toggle style="${btn}">${open ? "Hide" : "Details"}</button>`;
@@ -37,6 +44,7 @@
     if(b){ b.disabled = true; try{ await fetch("/api/job?name=" + b.dataset.job, {method:"POST"}); }catch(err){} setTimeout(load, 800); return; }
     if(e.target.closest("[data-toggle]")){ open = !open; render(); }
   });
-  function mount(){ document.body.appendChild(el); load(); setInterval(load, 15000); }
+  function mount(){ document.body.appendChild(el); document.body.style.paddingBottom = "72px"; load(); setInterval(load, 15000);
+    window.addEventListener("resize", () => render()); }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
 })();
