@@ -1,0 +1,10 @@
+data/desk.sqlite*
+reports/
+__pycache__/
+*.pyc
+.DS_Store
+backups/
+.env
+*.zip
+.venv/
+venv/

@@ -1,0 +1,107 @@
+{
+  "longCycle": "Late stage: public debt ~100% of GDP, 6% deficit during a boom",
+  "policy": "Hawkish hold: hiked in Sept, held Oct 28 (2 dissents for a hike); December hike ~77-85% priced; QT ended",
+  "readings": [
+    {
+      "asOf": "2026-10-28",
+      "name": "Fed funds target",
+      "trend": "Hiking bias (+25bp Sep 16)",
+      "value": "3.75-4.00%"
+    },
+    {
+      "asOf": "2026-11-02",
+      "name": "10-year Treasury",
+      "trend": "Easing off the 5.25% Sept peak",
+      "value": "4.91%"
+    },
+    {
+      "asOf": "2026-11-02",
+      "name": "2-year Treasury",
+      "trend": "Down from Oct, up ~1pt on the year",
+      "value": "4.59%"
+    },
+    {
+      "asOf": "2026-11-03",
+      "name": "2s10s spread",
+      "trend": "Positive, slightly flatter this week",
+      "value": "+0.34pt"
+    },
+    {
+      "asOf": "Sep 2026",
+      "name": "CPI (headline / core)",
+      "trend": "Rising (energy-led)",
+      "value": "3.7% / 2.6% y/y"
+    },
+    {
+      "asOf": "Sep 2026",
+      "name": "Unemployment",
+      "trend": "Flat (4.1-4.3% since March); hiring soft",
+      "value": "4.2%"
+    },
+    {
+      "asOf": "Q3 2026",
+      "name": "Real GDP",
+      "trend": "Accelerating (Q2 2.2%); GDPNow Q4 3.2%",
+      "value": "+3.4% annualized"
+    },
+    {
+      "asOf": "Oct 2026",
+      "name": "ISM Manufacturing PMI",
+      "trend": "Expanding 10 months; prices 75.2",
+      "value": "55.5"
+    },
+    {
+      "asOf": "2026-11-03",
+      "name": "High-yield spread (OAS)",
+      "trend": "Widening ~80bp off the 2.60% Aug low",
+      "value": "3.40%"
+    },
+    {
+      "asOf": "FY2026",
+      "name": "Federal deficit / debt",
+      "trend": "Deficit up 12% on FY2025",
+      "value": "6.1% of GDP / ~100% held by public"
+    }
+  ],
+  "shortCycle": "Late-cycle expansion entering a tightening phase",
+  "sources": [
+    {
+      "title": "FOMC Oct 28",
+      "url": "https://federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
+    },
+    {
+      "title": "Fed H.15 yields",
+      "url": "https://www.federalreserve.gov/releases/h15/"
+    },
+    {
+      "title": "FRED 2s10s",
+      "url": "https://fred.stlouisfed.org/series/T10Y2Y"
+    },
+    {
+      "title": "BLS jobs",
+      "url": "https://www.bls.gov/news.release/empsit.nr0.htm"
+    },
+    {
+      "title": "BEA Q3 GDP",
+      "url": "https://bea.gov/news/2026/gdp-advance-estimate-3rd-quarter-2026"
+    },
+    {
+      "title": "ISM October PMI",
+      "url": "https://www.prnewswire.com/news-releases/manufacturing-pmi-at-55-5-october-2026-ism-manufacturing-pmi-report-302925617.html"
+    },
+    {
+      "title": "FRED HY OAS",
+      "url": "https://fred.stlouisfed.org/data/BAMLH0A0HYM2"
+    },
+    {
+      "title": "AAF FY2026 deficit",
+      "url": "https://www.americanactionforum.org/insight/u-s-treasury-fy-2026-deficit-totaled-2-trillion/"
+    },
+    {
+      "title": "CPI September (FT Portfolios)",
+      "url": "https://www.ftportfolios.com/Commentary/EconomicResearch/2026/10/14/the-consumer-price-index-cpi-rose-0.6percent-in-september"
+    }
+  ],
+  "take": "Strong growth and a 55+ ISM support earnings acceleration (the C and A in CAN SLIM), but a hiking Fed, a 10-year near 5% and widening credit spreads argue for tighter stops, smaller first positions and leaders with real earnings. Watch the Nov 6 jobs report, Nov 10 CPI and the Dec 9 FOMC.",
+  "updated": "2026-11-05"
+}
