@@ -316,6 +316,17 @@ section[data-view][hidden]{display:none}
         <tbody id="wlBody"></tbody>
       </table>
     </div>
+    <div class="card" id="ldCard">
+      <div class="row"><h2 style="margin:0;font-size:1rem">RS leaders · Russell 3000</h2><span class="spacer"></span><span id="ldStatus" class="muted small"></span></div>
+      <p class="muted small" style="margin:0">IBD-style RS Rating (1–99) for every Russell 3000 stock, ranked after each US close by the home server. Listed: RS ≥ 80, price ≥ $10, 50-day volume ≥ 300K. Trend = Minervini's 7 price checks on closes. 4w = change in RS rank over 20 sessions.</p>
+      <div class="row">
+        <label class="check small"><input type="checkbox" id="ldTT" checked> Trend template 7/7</label>
+        <label class="check small"><input type="checkbox" id="ldCap" checked> Mandate cap $0.3–10B</label>
+        <label class="check small"><input type="checkbox" id="ldNew" checked> Hide watchlist stocks</label>
+        <label class="check small"><input type="checkbox" id="ldUp"> RS rising (4w)</label>
+      </div>
+      <div class="tablebox"><table><thead><tr><th>Ticker</th><th>Sector</th><th class="num">RS</th><th class="num">4w</th><th>Trend</th><th class="num">Off high</th><th class="num">Close</th><th class="num">Cap $B</th><th class="num">Vol %</th><th></th></tr></thead><tbody id="ldBody"></tbody></table></div>
+    </div>
     <p class="muted small" style="margin:0">Verdict ladder: REJECT (a trend or fundamental rule failed) → INCOMPLETE (data missing) → WATCH (base, risk or earnings rule not met yet) → READY (set a stop-buy at the pivot) → BUY (in the 0–5% buy zone, on volume, in a confirmed uptrend). EXTENDED means more than 5% past the pivot, so don't chase. STALE means the data is more than a day old. In Standard mode, "+N exc." shows how many preference rules a stock was allowed to miss.</p>
   </section>
 
@@ -732,6 +743,7 @@ async function connect(){
   db.collection("hist").onSnapshot(snap=>{ const m={}; snap.docs.forEach(d=>{ m[d.id]=JSON.parse(JSON.stringify(d.data())); }); S.hist=m; if(!document.querySelector('section[data-view="charts"]').hidden) renderCharts(); }, ()=>{});
   db.doc("app/scan").onSnapshot(snap=>{ S.scan=snap.exists?JSON.parse(JSON.stringify(snap.data())):null; if(!document.querySelector('section[data-view="charts"]').hidden) renderScanResults(); }, ()=>{});
   db.doc("app/cycle").onSnapshot(snap=>{ S.cycle=snap.exists?JSON.parse(JSON.stringify(snap.data())):null; renderCycle(); }, ()=>{});
+  db.doc("app/leaders").onSnapshot(snap=>{ S.leaders=snap.exists?JSON.parse(JSON.stringify(snap.data())):null; renderLeaders(); }, ()=>{});
 }
 
 /* ---------- screeners & routines ---------- */
@@ -825,7 +837,7 @@ function renderWatchlist(){
       <td class="r num ${e.dist==null?"":e.dist>5?"wrn":e.dist>=0?"pos":""}">${pct(e.dist)}</td>
       <td class="r num ${e.riskPct!=null&&e.riskPct>8?"neg":""}">${e.riskPct==null?"–":e.riskPct.toFixed(1)+"%"}</td>
       <td class="r num ${e.rr!=null&&e.rr<3?"neg":""}">${e.rr==null?"–":e.rr.toFixed(1)}</td>
-      <td class="r num">${esc(s.rs||"–")}</td>
+      <td class="r num">${rsCell(s)}</td>
       <td class="r num ${e.ed!=null&&e.ed>=0&&e.ed<14?"neg":""}">${e.ed==null?"–":e.ed<0?"past":e.ed+"d"}</td>
       <td class="small" style="white-space:normal;min-width:220px"><strong>${esc(e.why.label)}</strong><br><span class="muted">${esc(e.why.detail||"")}</span></td>
       <td class="r small mono ${e.age!=null&&e.age>1?"wrn":"muted"}">${esc(s.updated||"–")}</td></tr>`;
@@ -869,7 +881,7 @@ function renderRules(){
   $("#rulesBody").innerHTML = RULES.map(r=>`<tr><td class="mono">${r.id}</td><td><strong>${esc(r.label)}</strong><br><span class="muted small">${esc(r.g)}${r.trigger?" · trigger":""}</span></td><td>${esc(r.th)}</td><td>${r.trigger?"Trigger":SOFT.has(r.id)?'<span class="wrn">Preference</span>':"<strong>Core</strong>"}${r.id==="TT8"?"<br><span class='muted small'>Standard: 70–79 allowed</span>":r.id==="R2"?"<br><span class='muted small'>Standard: 2:1 allowed</span>":""}</td><td class="muted">${esc(r.src)}</td></tr>`).join("");
 }
 function renderMode(){ const m=S.settings.mode==='standard'?'standard':'strict'; const sel=$('#modeSel'); if(document.activeElement!==sel) sel.value=m; $('#modeLine').textContent = m==='strict'?'Strict mode: every rule must pass.':'Standard mode: core rules must pass; up to 2 preference rules may be missed, and each one is flagged.'; }
-function renderAll(){ renderMode(); renderMarket(); renderToday(); renderCycle(); renderNews(); if(!document.querySelector('section[data-view="charts"]').hidden) renderCharts(); if(typeof renderFeed==="function") renderFeed(); renderWatchlist(); renderPositions(); if(!$("#stockSheet").hidden) renderSheetChecks(); }
+function renderAll(){ renderMode(); renderMarket(); renderToday(); renderCycle(); renderNews(); if(!document.querySelector('section[data-view="charts"]').hidden) renderCharts(); if(typeof renderFeed==="function") renderFeed(); renderWatchlist(); if(typeof renderLeaders==="function") renderLeaders(); renderPositions(); if(!$("#stockSheet").hidden) renderSheetChecks(); }
 
 /* ---------- routing ---------- */
 function route(){ const v=(location.hash||"#today").slice(1); const ok=["today","watchlist","charts","positions","rulebook"].includes(v)?v:"today";
@@ -906,7 +918,9 @@ $("#addStock").addEventListener("click",()=>openStock(null));
 $("#closeStock").addEventListener("click",()=>{ $("#stockSheet").hidden=true; });
 $("#stockSheet").addEventListener("click",e=>{ if(e.target.id==="stockSheet") $("#stockSheet").hidden=true; });
 $("#saveStock").addEventListener("click",async()=>{
-  const o=formObj(); if(!o.ticker){ $("#f_ticker").focus(); $("#sheetScore").textContent="Enter a ticker to save."; return; }
+  const prevS=(editId&&S.stocks[editId])?S.stocks[editId]:{};
+  const o=Object.assign({},prevS,formObj()); if(!o.ticker){ $("#f_ticker").focus(); $("#sheetScore").textContent="Enter a ticker to save."; return; }
+  if(String(o.rs||"").trim()!==String(prevS.rs||"").trim()) o.rsSrc=String(o.rs||"").trim()?"manual":"";
   if(!o.updated) o.updated=todayISO();
   const btn=$("#saveStock"); btn.disabled=true; btn.textContent="Saving…";
   if(editId && S.stocks[editId] && S.stocks[editId].fillReq) o.fillReq=S.stocks[editId].fillReq;
@@ -926,6 +940,43 @@ $("#delStock").addEventListener("click",async()=>{ if(!editId) return; if(Date.n
 $("#wlBody").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-stock]"); if(tr) openStock(tr.dataset.stock); });
 $("#wlBody").addEventListener("keydown",e=>{ if(e.key==="Enter"){ const tr=e.target.closest("tr[data-stock]"); if(tr) openStock(tr.dataset.stock); } });
 $("#vFilter").addEventListener("click",e=>{ const b=e.target.closest("[data-filter]"); if(b){ S.filter=b.dataset.filter; renderWatchlist(); } });
+
+/* ---------- RS leaders (Russell 3000, computed by the home server) ---------- */
+function rsCell(s){
+  const rs=String(s.rs||"").trim(), rk=num(s.rsRank), p4=num(s.rsRank4w);
+  const d=(rk!=null&&p4!=null)?rk-p4:null;
+  const arrow=d==null||d===0?"":d>0?` <span class="pos small" title="RS rank up ${d} in 4 weeks">▲${d}</span>`:` <span class="neg small" title="RS rank down ${-d} in 4 weeks">▼${-d}</span>`;
+  if(!rs) return rk!=null?`${rk}${arrow}`:"–";
+  const other=(rk!=null&&s.rsSrc!=="computed"&&String(rk)!==rs)?` <span class="muted small" title="Computed Russell 3000 rank; yours is kept">(${rk})</span>`:"";
+  return `${esc(rs)}${other}${arrow}`;
+}
+function renderLeaders(){
+  const card=$("#ldCard"), tb=$("#ldBody"); if(!card||!tb) return;
+  const L=S.leaders;
+  if(!L||!Array.isArray(L.items)){ card.hidden=!(window.claude&&window.claude.local); tb.innerHTML=`<tr><td colspan="10" class="empty">No ranking yet. It runs with the daily job on the home server (first run downloads a year of prices for ~3,000 stocks: allow 10–15 minutes).</td></tr>`; $("#ldStatus").textContent=""; return; }
+  card.hidden=false;
+  const tt=$("#ldTT").checked, cap=$("#ldCap").checked, nw=$("#ldNew").checked, up=$("#ldUp").checked;
+  const wl=new Set(Object.keys(S.stocks).map(x=>x.toUpperCase()));
+  const rows=L.items.filter(x=>(!tt||x.tt===7)&&(!cap||(x.mcap!=null&&x.mcap>=0.3&&x.mcap<=10))&&(!nw||!wl.has(x.t))&&(!up||(x.rank4w!=null&&x.rank>x.rank4w)));
+  $("#ldStatus").textContent=`As of ${L.asOf} · ${L.n} ranked · ${rows.length} shown`;
+  tb.innerHTML=rows.slice(0,100).map(x=>{ const d=x.rank4w==null?null:x.rank-x.rank4w;
+    return `<tr><td><b class="mono">${esc(x.t)}</b> <span class="muted small">${esc(x.name||"")}</span></td><td class="small">${esc(x.sector||"")}</td>
+    <td class="num"><b>${x.rank}</b></td><td class="num ${pcls(d)}">${d==null?"–":(d>0?"+":"")+d}</td><td>${x.tt}/7</td>
+    <td class="num">${pct(x.offHi)}</td><td class="num">${f2(x.c)}</td><td class="num">${x.mcap==null?"–":x.mcap.toFixed(1)}</td><td class="num">${x.vr==null?"–":x.vr}</td>
+    <td class="nowrap">${wl.has(x.t)?'<span class="muted small">On watchlist</span>':`<button class="btn sm" data-ldadd="${esc(x.t)}">+ Watchlist</button>`}</td></tr>`; }).join("")
+    || `<tr><td colspan="10" class="empty">No stocks match these filters.</td></tr>`;
+}
+async function addLeader(t){
+  const x=((S.leaders||{}).items||[]).find(i=>i.t===t); if(!x) return;
+  const st=v=>v==null?"":String(v);
+  await saveStock(t,{ticker:t,name:x.name||"",sector:x.sector||"",price:st(x.c),ma50:st(x.m50),ma150:st(x.m150),ma200:st(x.m200),ma200prev:st(x.m200p),
+    hi52:st(x.hi),lo52:st(x.lo),avgvol:st(x.av),bovol:st(x.vr),mcap:st(x.mcap),rs:String(x.rank),rsSrc:"computed",rsRank:String(x.rank),rsRank4w:st(x.rank4w),
+    updated:S.leaders.asOf||todayISO(),fillReq:todayISO(),
+    notes:`Added from RS leaders ${todayISO()}: RS ${x.rank}, trend ${x.tt}/7, ${pct(x.offHi)} from the 52-week high. Fundamentals queued for Claude's next daily run.`});
+  renderLeaders();
+}
+["#ldTT","#ldCap","#ldNew","#ldUp"].forEach(id=>$(id).addEventListener("change",renderLeaders));
+$("#ldBody").addEventListener("click",e=>{ const a=e.target.closest("[data-ldadd]"); if(a){ a.disabled=true; addLeader(a.dataset.ldadd).catch(()=>{ a.disabled=false; }); } });
 
 /* ---------- position editor ---------- */
 let posId=null, posArm=0;

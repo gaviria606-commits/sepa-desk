@@ -4,7 +4,9 @@
   python3 desk.py serve [--host H] [--port 8765] [--no-scheduler]
                                              run the desk (default http://127.0.0.1:8765, with the scheduler)
   python3 desk.py update                     prices, market regime, RS line, Dalio momentum, chart history
-  python3 desk.py job <daily|update|news|backup>   run a scheduled job now, in the foreground
+  python3 desk.py job <daily|update|rsrank|news|backup>   run a scheduled job now, in the foreground
+  python3 desk.py rsrank [--full] [TICKER ...]   Russell 3000 RS ranking now (--full re-downloads history);
+                                             with tickers, prints their rank and 4-week change
   python3 desk.py backup                     SQLite snapshot + JSON export into backups/
   python3 desk.py bundle [file.zip]          code + ALL data in one zip, to move the desk to another PC
   python3 desk.py restore <file.zip>         load the data from a bundle into this PC's database
@@ -56,6 +58,21 @@ def main(argv):
         j = (store.get("app/jobs") or {})["data"][name]
         print(j.get("output", ""))
         return 0 if j.get("status") == "ok" else 1
+    elif cmd == "rsrank":
+        from desk import DB_PATH
+        from desk.rsrank import RSRank
+        rk = RSRank(DB_PATH, store, open_market())
+        tickers = [t.upper() for t in rest if not t.startswith("--")]
+        if tickers:
+            with rk.lock:
+                d = rk.conn.execute("SELECT MAX(d) FROM rank_hist").fetchone()[0]
+                for t in tickers:
+                    r = rk.conn.execute("SELECT rank FROM rank_hist WHERE d=? AND sym=?", (d, t)).fetchone()
+                    print(f"{t}: RS {r[0] if r else 'n/a'} (as of {d})")
+            return 0
+        ok, msg = rk.run(full="--full" in rest)
+        print(msg)
+        return 0 if ok else 1
     elif cmd == "backup":
         from desk import backup
         print(backup.run(store))

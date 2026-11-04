@@ -5,7 +5,7 @@ Juan's trading desk for Mark Minervini's SEPA/VCP method combined with William O
 ## Ground rules for Claude
 - Update data and report only. Never place trades, never change Juan's stops, verdict rules, mode or account settings, and never delete watchlist stocks or positions unless he asks.
 - Never invent numbers. Fundamentals come from company releases/SEC filings first. Leave a field blank (and say why in notes) rather than guess. Don't overwrite a value Juan typed (especially `rs`) unless a newer quarter was reported.
-- Distribution days and the follow-through state are computed by `desk/regime.py` (`market.src = "computed"`). Override with IBD figures only from a source dated within 3 days (`src: "IBD"`, `srcDate`). RS ratings (`rs`) only from a source dated within 14 days; `rsPerf`/`rsLineHi` are computed and never copied into `rs`.
+- Distribution days and the follow-through state are computed by `desk/regime.py` (`market.src = "computed"`). Override with IBD figures only from a source dated within 3 days (`src: "IBD"`, `srcDate`). RS: `desk/rsrank.py` ranks the Russell 3000 daily (`rsRank`, 1-99). It fills `rs` only when `rs` is empty or `rsSrc == "computed"`; a value Juan typed (`rsSrc` "manual" or absent) is never replaced. You may set `rs` from an IBD RS Rating dated within 14 days only on stocks where `rs` is not computed. `rsPerf`/`rsLineHi` are never copied into `rs`.
 - `static/index.html` is the single source of the UI and must keep working on claude.ai too: no build step, no external scripts, everything inline. Use `window.claude.local` to branch for local-only behaviour.
 
 ## Layout
@@ -18,6 +18,7 @@ Juan's trading desk for Mark Minervini's SEPA/VCP method combined with William O
 - `desk/update.py`: mechanical daily update (prices into stocks/positions, market 50/200-day checks, computed distribution days/FTD, RS line metrics, Dalio momentum `cycleMkt`, chart history). Does not stamp `market.updated` unless index data arrived.
 - `desk/regime.py`: O'Neil distribution-day / follow-through state machine on index bars (pure function, unit-tested).
 - `desk/scheduler.py`: in-process scheduler started by `serve` (jobs daily, update, news, backup; config `app/settings.schedule`, status `app/jobs`).
+- `desk/rsrank.py`: Russell 3000 RS ranking: universe from iShares IWV holdings (weekly; fallback `data/universe.csv`), batched Yahoo closes in SQLite table `px`, IBD weighting 2*C/C63 + C/C126 + C/C189 + C/C252, percentile 1-99, history in `rank_hist`, leaders to `app/leaders`. Symbol overrides in `data/ticker_map.json` ({"ISHARES": "YAHOO"}).
 - `desk/backup.py`: SQLite snapshot + JSON backups with rotation; `bundle`/`restore` zip for moving machines.
 - `static/local-panel.js`: local-only job status strip, injected by the server (not part of the artifact).
 - Auth: `SEPA_TOKEN` (from `.env`, never committed) turns on cookie/Bearer auth and is required for non-loopback binds. Remote access is via `tailscale serve`, not port forwarding.
@@ -33,7 +34,8 @@ Juan's trading desk for Mark Minervini's SEPA/VCP method combined with William O
 - Data: `python3 desk.py db get app/settings`, `db list stocks`, `db update stocks/GKOS '{"pivot":"242.40"}'`, `db set app/news - <<'JSON' ... JSON`
 - Research with Claude Code: `python3 desk.py research` (daily), `python3 desk.py news`
 - Full daily routine: `./scripts/daily.sh`
-- Run a scheduled job now: `python3 desk.py job daily|update|news|backup`; move machines: `desk.py bundle` / `desk.py restore <zip>`
+- RS ranking: `python3 desk.py rsrank` (runs inside the daily job), `rsrank --full` (re-download all history), `rsrank NVDA GKOS` (look up ranks)
+- Run a scheduled job now: `python3 desk.py job daily|update|rsrank|news|backup`; move machines: `desk.py bundle` / `desk.py restore <zip>`
 - Tests: `python3 -m unittest discover -s tests`, `node tools/test-patterns.js`; offline end-to-end: `SEPA_OFFLINE=1 SEPA_DB=/tmp/t.sqlite python3 desk.py serve`
 
 ## Data model (all stock/position values are strings)
@@ -41,8 +43,9 @@ Juan's trading desk for Mark Minervini's SEPA/VCP method combined with William O
 - `app/cycle`: Dalio debt-cycle panel {updated, shortCycle, longCycle, policy, readings [{name, value, trend, asOf}], take, sources [{title, url}]}.
 - `app/news`: {status (requested|running|done|error), requestedAt, startedAt, updated, window, items [{kind, key, date, title, source, url, impact, take}], summary, quiet [], error}.
 - `app/jobs`: {daily|update|news|backup: {status (running|ok|error), day, started, finished, output}}. `app/settings.schedule`: {daily "HH:MM", days [Mon=0..], research bool, news "HH:MM"|"" , backup "HH:MM"}. `app/settings.market` also has src ("computed"|"IBD"), srcDate, calc {spx|ndx: {dd, ddDates[], state, ftdDate, uptrend, src, asOf}}.
+- `app/leaders`: {asOf, n (ranked), universe, universeAt, rule, items [{t, sym, name, sector, rank, rank4w, tt (0-7), c, offHi %, m50, m150, m200, m200p, hi, lo (close-based), av (K shares), vr (volume % of avg), mcap ($B), onDesk}]}.
 - `app/scan`: last pattern scan {ran, tickers[], results [{t, c, score, rs, pass, name, key, status, pivot, stop, dist}], bad []}.
-- `stocks/<TICKER>`: ticker, name, sector, price, ma50, ma150, ma200, ma200prev (200-day 22 sessions ago), hi52, lo52, avgvol (thousand shares), bovol (today's volume % of average), mcap ($B), rs, rsPerf (computed weighted 12-month %), rsLineHi ("1" = RS line at 52-week high), eps0-2, sal0-2, mar0-2 (latest quarter first, YoY %), epsA, roe, catalyst, grpRank, grpTotal, inst, contr, weeks, dry, pivot, stop, target, earn, float, notes, updated, fillReq (queued for Claude to fill fundamentals).
+- `stocks/<TICKER>`: ticker, name, sector, price, ma50, ma150, ma200, ma200prev (200-day 22 sessions ago), hi52, lo52, avgvol (thousand shares), bovol (today's volume % of average), mcap ($B), rs, rsPerf (computed weighted 12-month %), rsLineHi ("1" = RS line at 52-week high), rsRank / rsRank4w / rsAsOf (computed Russell 3000 RS rank, 20 sessions ago, date), rsSrc ("computed" | "manual"), eps0-2, sal0-2, mar0-2 (latest quarter first, YoY %), epsA, roe, catalyst, grpRank, grpTotal, inst, contr, weeks, dry, pivot, stop, target, earn, float, notes, updated, fillReq (queued for Claude to fill fundamentals).
 - `positions/<id>`: ticker, entry, shares, istop, stop, price, date, bo, hit20, v50, climax, notes.
 - `hist/<TICKER>`: {bars "yyyymmdd,o,h,l,c,volK;...", asOf, n, scan (true when only from a pattern scan)}.
 

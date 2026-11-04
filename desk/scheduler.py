@@ -17,7 +17,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo(os.environ.get("SEPA_TZ", "Pacific/Auckland"))
-DEFAULT = {"daily": "10:15", "days": [1, 2, 3, 4, 5], "research": True, "news": "", "backup": "02:00"}
+DEFAULT = {"daily": "10:15", "days": [1, 2, 3, 4, 5], "research": True, "rsrank": True, "news": "", "backup": "02:00"}
 
 
 class Scheduler:
@@ -73,9 +73,16 @@ class Scheduler:
         if name == "update":
             r = update.run(self.store, self.market, log=lambda *_: None)
             return True, f"Updated {r['updated']} stocks; no data for: {', '.join(r['bad']) or 'none'}"
+        if name == "rsrank":
+            return self._rsrank()
         if name == "daily":
             r = update.run(self.store, self.market, log=lambda *_: None)
             out = f"Update: {r['updated']} stocks; no data for: {', '.join(r['bad']) or 'none'}\n"
+            if self.config().get("rsrank"):
+                ok_rs, rs_msg = self._rsrank()
+                self._record("rsrank", status="ok" if ok_rs else "error", day=datetime.now(TZ).strftime("%Y-%m-%d"),
+                             finished=datetime.now(TZ).isoformat(timespec="seconds"), output=rs_msg[-3000:])
+                out += f"RS ranking: {rs_msg}\n"
             if not self.config().get("research"):
                 return True, out + "Research disabled in settings.schedule."
             ok, rep = claude_jobs.run_prompt("daily-research")
@@ -86,6 +93,14 @@ class Scheduler:
         if name == "backup":
             return True, backup.run(self.store)
         raise ValueError(f"unknown job {name}")
+
+    def _rsrank(self):
+        from . import DB_PATH
+        from .rsrank import RSRank
+        try:
+            return RSRank(DB_PATH, self.store, self.market, log=self.log).run()
+        except Exception:
+            return False, traceback.format_exc()[-2000:]
 
     # ----- loop -----
     def _due(self, name, hhmm, days, now, jobs):

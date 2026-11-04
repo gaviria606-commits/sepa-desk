@@ -41,6 +41,18 @@ Every update computes O'Neil distribution days and follow-through days from S&P 
 
 Each stock also gets `rsPerf` (IBD-style weighted 12-month performance, %) and `rsLineHi` ("1" when the stock/SPY line is at a 52-week high). Your `rs` field is never touched.
 
+## RS ranking (Russell 3000)
+
+After each daily update the server ranks every Russell 3000 stock on IBD's RS formula (40% weight on the latest quarter: `2·C/C63 + C/C126 + C/C189 + C/C252`) and converts it to a 1–99 percentile. The universe comes from iShares' IWV holdings file (refreshed weekly); prices from Yahoo in batches of 100.
+
+- **First run** downloads ~14 months for ~3,000 tickers: allow 10–15 minutes and ~40 MB of disk. Later runs fetch one month in batches (2–3 minutes) and re-download a ticker's history only when a split or revision is detected.
+- **Watchlist:** every stock gets `rsRank` and its 4-week change (▲/▼ in the RS column). `rs` is filled automatically when empty; a value you type is kept and the computed rank shows in brackets beside it. Clear the field to switch a stock back to automatic.
+- **Leaders panel** (Watchlist tab): RS ≥ 80, price ≥ $10, 50-day volume ≥ 300K, with Minervini's 7 price checks. Filters for 7/7, your $0.3–10B mandate, RS rising, and **+ Watchlist** (prices and RS prefilled, fundamentals queued for Claude).
+- `python3 desk.py rsrank` runs it now; `rsrank GKOS NVDA` looks up ranks; `rsrank --full` re-downloads everything.
+- If a symbol never gets data (iShares and Yahoo spell it differently), add it to `data/ticker_map.json`: `{"BRKB": "BRK-B"}`. If the iShares download stops working, drop a `data/universe.csv` with a `Ticker` column.
+
+Differences from IBD to expect: IBD ranks ~6,000+ US stocks, including non-Russell names, ADRs and recent IPOs, so the same stock can read a few points different. The ordering is what matters for the 80+ rule.
+
 ## Run it on your home PC, reach it from anywhere
 
 1. Get the project onto the PC (git clone, or unzip a bundle; see "Moving between machines").
@@ -67,7 +79,7 @@ The bundle never contains `.env` (your token) or the SQLite file. Git works too 
 ## Tests
 
 ```bash
-python3 -m unittest discover -s tests     # regime, auth/CSRF, scheduler, bundle (offline)
+python3 -m unittest discover -s tests     # regime, RS ranking, auth/CSRF, scheduler, bundle (offline)
 node tools/test-patterns.js               # chart pattern engine
 ```
 

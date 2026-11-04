@@ -16,7 +16,7 @@ from .sheets import Sheets
 
 COOKIE = "sepa_session"
 SESSION_DAYS = 30
-JOBS = ("update", "daily", "news", "backup")
+JOBS = ("update", "rsrank", "daily", "news", "backup")
 LOGIN_HTML = """<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SEPA Desk</title><style>body{font:16px system-ui;background:#0f1115;color:#e6e6e6;display:grid;place-items:center;height:100vh;margin:0}
 form{display:grid;gap:12px;width:min(320px,90vw)}input,button{font:inherit;padding:10px;border-radius:8px;border:1px solid #333;background:#1a1d23;color:inherit}
