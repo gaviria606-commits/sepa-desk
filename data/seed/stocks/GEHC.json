@@ -1,6 +1,6 @@
 {
-  "avgvol": "3870",
-  "bovol": "160",
+  "avgvol": "3644",
+  "bovol": "151",
   "catalyst": "Q3 beat: adj EPS $1.34 +25% vs $1.20 est; revenue $5.51B +7.2% vs $5.35B est; FY26 adj EPS guide raised to $4.95-5.05",
   "eps0": "25.2",
   "eps1": "6.6",
@@ -18,12 +18,18 @@
   "mcap": "39.1",
   "name": "GE HealthCare Technologies",
   "notes": "Fundamentals filled 2026-11-04 from 8-K releases (adj EPS; GAAP net margin; epsA on standalone 2022 base; ROE TTM / avg equity). RS: no dated IBD rating found. 2026-10-28 Q3: revenue $5.51B (+7.2%, organic +6.2%) vs $5.35B consensus; adj EPS $1.34 (+25%) vs $1.20; adj EBIT margin 16.6% (+180 bp); FY26 adj EPS raised to $4.95-5.05 from $4.80-5.00, organic growth ~4%. Shares up ~5% pre-market on the report. Fails trend template for now: 150-day below 200-day and 200-day still falling. Market cap ~$36B, well above the $10B mandate. Added from Finviz link 2026-11-04.",
-  "price": "86.48",
+  "price": "80.66",
   "roe": "19.6",
   "sal0": "7.2",
   "sal1": "5.8",
   "sal2": "7.4",
   "sector": "Healthcare / Medical imaging & diagnostics",
   "ticker": "GEHC",
-  "updated": "2026-11-04"
+  "updated": "2026-11-03",
+  "rsPerf": "14.4",
+  "rsLineHi": "0",
+  "rsRank": "1",
+  "rsAsOf": "2026-11-04",
+  "rs": "1",
+  "rsSrc": "computed"
 }

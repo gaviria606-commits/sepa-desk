@@ -1,0 +1,22 @@
+{
+  "kind": "feed",
+  "tickers": [
+    "CDNA",
+    "DBC",
+    "GEHC",
+    "GKOS",
+    "GLD",
+    "HALO",
+    "HNGE",
+    "IEF",
+    "IWM",
+    "OPRT",
+    "PAYS",
+    "QQQ",
+    "SPY",
+    "TIP",
+    "TLT",
+    "UUP"
+  ],
+  "title": "SEPA Desk Price Feed"
+}

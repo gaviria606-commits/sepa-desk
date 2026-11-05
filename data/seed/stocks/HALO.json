@@ -1,6 +1,6 @@
 {
-  "avgvol": "2283",
-  "bovol": "42",
+  "avgvol": "2205",
+  "bovol": "68",
   "catalyst": "ENHANZE royalties; FY26 EPS guide $8.65-9.00 vs $8.02 consensus",
   "contr": "",
   "dry": "",
@@ -13,7 +13,7 @@
   "float": "",
   "grpRank": "",
   "grpTotal": "",
-  "hi52": "133.96",
+  "hi52": "134.0",
   "inst": "",
   "lo52": "61.23",
   "ma150": "88.55",
@@ -27,7 +27,7 @@
   "name": "Halozyme",
   "notes": "Fundamentals filled 2026-11-04 (latest = Q2'26, then Q1'26, Q4'25; Q3 not yet reported). Q4'25 was a one-off loss (non-GAAP EPS -$0.24). ROE 173.7 (stockanalysis TTM) is inflated by buyback-shrunk equity. Reports Nov 5 after the US close (Fri morning NZ). Extended ~12-17% above the 50-day (estimate). Do not buy before the report. $1.3B convertible issued Sept 2026.",
   "pivot": "",
-  "price": "130.23",
+  "price": "128.62",
   "roe": "173.7",
   "rs": "58",
   "sal0": "47.7",
@@ -37,6 +37,10 @@
   "stop": "",
   "target": "",
   "ticker": "HALO",
-  "updated": "2026-11-04",
-  "weeks": ""
+  "updated": "2026-11-03",
+  "weeks": "",
+  "rsPerf": "73.7",
+  "rsLineHi": "0",
+  "rsRank": "17",
+  "rsAsOf": "2026-11-04"
 }

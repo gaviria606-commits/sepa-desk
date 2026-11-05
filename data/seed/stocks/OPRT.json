@@ -21,5 +21,17 @@
   "sal2": "-3",
   "sector": "Fintech / Consumer lending",
   "ticker": "OPRT",
-  "updated": "2026-11-04"
+  "updated": "2026-11-03",
+  "ma50": "8.48",
+  "ma150": "6.66",
+  "ma200": "6.27",
+  "ma200prev": "5.84",
+  "avgvol": "614",
+  "bovol": "94",
+  "rsPerf": "77.4",
+  "rsLineHi": "1",
+  "rsRank": "50",
+  "rsAsOf": "2026-11-04",
+  "rs": "50",
+  "rsSrc": "computed"
 }

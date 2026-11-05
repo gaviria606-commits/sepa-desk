@@ -1,0 +1,52 @@
+{
+  "asOf": "2026-11-04",
+  "n": 7,
+  "universe": "",
+  "universeAt": "",
+  "updated": "2026-11-05T14:07:05",
+  "rule": "RS >= 80, trend template on closes, price >= $10, 50-day volume >= 300K",
+  "items": [
+    {
+      "t": "CDNA",
+      "sym": "CDNA",
+      "name": "",
+      "sector": "",
+      "rank": 99,
+      "rank4w": null,
+      "tt": 7,
+      "c": 85.86,
+      "offHi": -3.0,
+      "m50": 62.2,
+      "m150": 39.92,
+      "m200": 34.64,
+      "m200p": 29.01,
+      "hi": 88.47,
+      "lo": 14.52,
+      "av": 1381,
+      "vr": 98,
+      "mcap": null,
+      "onDesk": true
+    },
+    {
+      "t": "PAYS",
+      "sym": "PAYS",
+      "name": "",
+      "sector": "",
+      "rank": 83,
+      "rank4w": null,
+      "tt": 7,
+      "c": 15.3,
+      "offHi": -2.0,
+      "m50": 13.82,
+      "m150": 10.01,
+      "m200": 8.49,
+      "m200p": 7.4,
+      "hi": 15.62,
+      "lo": 3.18,
+      "av": 838,
+      "vr": 111,
+      "mcap": null,
+      "onDesk": true
+    }
+  ]
+}

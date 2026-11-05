@@ -1,6 +1,6 @@
 {
-  "avgvol": "1575",
-  "bovol": "72",
+  "avgvol": "1237",
+  "bovol": "868",
   "catalyst": "Q3 beat: sales $211M +58%, adj EPS $0.47 vs -$0.09 est; 2026 guide $775-785M, 2027 $1.0B",
   "contr": "",
   "dry": "",
@@ -12,7 +12,7 @@
   "float": "",
   "grpRank": "",
   "grpTotal": "",
-  "hi52": "255.19",
+  "hi52": "248.75",
   "inst": "",
   "lo52": "80.91",
   "ma150": "152.66",
@@ -26,7 +26,7 @@
   "name": "Glaukos",
   "notes": "Fundamentals filled 2026-11-04 from 8-K releases: EPS growth n/m all 3 qtrs (prior-year losses; non-GAAP EPS Q3 $0.47 vs -$0.16, Q2 -$0.14 vs -$0.24, Q1 -$0.18 vs -$0.22); 3-yr EPS n/m (losses); ROE GAAP TTM. Post-earnings gap 10/29 ($181 to $240) on heavy volume. Wait for a 1-3 week flag above ~$225; pivot = flag high. Stop 7-8% under entry, not under the gap low. Above the $10B mandate.",
   "pivot": "242.40",
-  "price": "252.52",
+  "price": "233.04",
   "roe": "-24.7",
   "rs": "65",
   "sal0": "58",
@@ -36,6 +36,10 @@
   "stop": "",
   "target": "",
   "ticker": "GKOS",
-  "updated": "2026-11-04",
-  "weeks": ""
+  "updated": "2026-11-03",
+  "weeks": "",
+  "rsPerf": "81.8",
+  "rsLineHi": "0",
+  "rsRank": "34",
+  "rsAsOf": "2026-11-04"
 }
