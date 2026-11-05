@@ -10,6 +10,8 @@
   python3 desk.py backup                     SQLite snapshot + JSON export into backups/
   python3 desk.py bundle [file.zip]          code + ALL data in one zip, to move the desk to another PC
   python3 desk.py restore <file.zip>         load the data from a bundle into this PC's database
+  python3 desk.py restore --once             installer use: restore the newest sepa-desk-*.zip next to the
+                                             project only if not restored here before (backs up first)
   python3 desk.py token                      create .env with a random SEPA_TOKEN (for remote access)
   python3 desk.py db get <path>              e.g. app/settings, stocks/GKOS
   python3 desk.py db list <collection>       e.g. stocks, positions, hist
@@ -47,6 +49,11 @@ def main(argv):
 
     if cmd == "serve":
         from desk.server import serve
+        if sys.stdout is None or sys.stderr is None:  # pythonw.exe (Windows service task): no console
+            from desk import ROOT
+            os.makedirs(os.path.join(ROOT, "reports"), exist_ok=True)
+            log = open(os.path.join(ROOT, "reports", "server.log"), "a", encoding="utf-8", buffering=1)
+            sys.stdout = sys.stderr = log
         port = int(rest[rest.index("--port") + 1]) if "--port" in rest else int(os.environ.get("SEPA_PORT", 8765))
         host = rest[rest.index("--host") + 1] if "--host" in rest else os.environ.get("SEPA_HOST", "127.0.0.1")
         serve(store, open_market(), host=host, port=port, schedule="--no-scheduler" not in rest)
@@ -81,6 +88,9 @@ def main(argv):
         from desk import backup
         path, n = backup.make_bundle(store, rest[0] if rest else f"sepa-desk-{datetime.now():%Y%m%d-%H%M}.zip")
         print(f"Bundle {path}: code + {n} documents")
+    elif cmd == "restore" and rest[:1] == ["--once"]:
+        from desk import ROOT, backup
+        print(backup.restore_once(store, [ROOT, os.path.dirname(ROOT)]))
     elif cmd == "restore":
         from desk import backup
         print(f"Restored {backup.restore_bundle(store, rest[0])} documents from {rest[0]}")

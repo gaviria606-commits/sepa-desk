@@ -179,7 +179,15 @@ class BundleTests(unittest.TestCase):
         from desk.db import DocStore
         store = open_store()
         store.set("stocks/ZZZT", {"ticker": "ZZZT", "pivot": "12.5"})
-        path, n = backup.make_bundle(store, os.path.join(TMP, "b.zip"))
+        env = os.path.join(backup.ROOT, ".env")
+        made_env = not os.path.exists(env)
+        if made_env:
+            open(env, "w").write("SEPA_TOKEN=must-not-be-bundled\n")
+        try:
+            path, n = backup.make_bundle(store, os.path.join(TMP, "b.zip"))
+        finally:
+            if made_env:
+                os.remove(env)
         names = zipfile.ZipFile(path).namelist()
         self.assertIn("sepa-desk/desk.py", names)
         self.assertIn("sepa-desk/data/seed/stocks/ZZZT.json", names)
@@ -187,6 +195,21 @@ class BundleTests(unittest.TestCase):
         other = DocStore(os.path.join(TMP, "other.sqlite"))
         self.assertEqual(backup.restore_bundle(other, path), n)
         self.assertEqual(other.get("stocks/ZZZT")["data"]["pivot"], "12.5")
+
+    def test_restore_once_never_rolls_back_live_data(self):
+        from desk import backup
+        from desk.db import DocStore
+        d = tempfile.mkdtemp(dir=TMP)
+        src = DocStore(os.path.join(d, "src.sqlite"))
+        src.set("app/settings", {"account": 2822})
+        backup.make_bundle(src, os.path.join(d, "sepa-desk-20261105-1530.zip"))
+        live = DocStore(os.path.join(d, "live.sqlite"))
+        marker = os.path.join(d, ".restored")
+        self.assertIn("Restored", backup.restore_once(live, [d], marker))
+        live.set("app/settings", {"account": 9999})  # weeks of real use
+        self.assertIn("already restored", backup.restore_once(live, [d], marker))
+        self.assertEqual(live.get("app/settings")["data"]["account"], 9999)
+        self.assertIn("nothing to restore", backup.restore_once(live, [tempfile.mkdtemp(dir=TMP)], marker))
 
 
 if __name__ == "__main__":

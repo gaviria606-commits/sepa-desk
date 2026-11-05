@@ -35,7 +35,7 @@ Juan's trading desk for Mark Minervini's SEPA/VCP method combined with William O
 - Research with Claude Code: `python3 desk.py research` (daily), `python3 desk.py news`
 - Full daily routine: `./scripts/daily.sh`
 - RS ranking: `python3 desk.py rsrank` (runs inside the daily job), `rsrank --full` (re-download all history), `rsrank NVDA GKOS` (look up ranks)
-- Run a scheduled job now: `python3 desk.py job daily|update|rsrank|news|backup`; move machines: `desk.py bundle` / `desk.py restore <zip>`
+- Run a scheduled job now: `python3 desk.py job daily|update|rsrank|news|backup`; move machines: `desk.py bundle` / `desk.py restore <zip>` (`restore --once` is the installers' idempotent variant; bundles never include dotfiles such as `.env`)
 - Tests: `python3 -m unittest discover -s tests`, `node tools/test-patterns.js`; offline end-to-end: `SEPA_OFFLINE=1 SEPA_DB=/tmp/t.sqlite python3 desk.py serve`
 
 ## Data model (all stock/position values are strings)

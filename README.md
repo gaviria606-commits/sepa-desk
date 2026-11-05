@@ -60,7 +60,7 @@ Differences from IBD to expect: IBD ranks ~6,000+ US stocks, including non-Russe
    - Windows: `powershell -ExecutionPolicy Bypass -File scripts\install-windows.ps1`
    - macOS / Linux: `./scripts/install-unix.sh`
 
-   Both create `.venv`, install dependencies, write `.env` with a random `SEPA_TOKEN` (printed once: save it in your password manager), restore any `sepa-desk-*.zip` bundle found next to the project, and start the server at logon/boot with auto-restart.
+   Both create `.venv`, install dependencies, write `.env` with a random `SEPA_TOKEN` (printed once: save it in your password manager), restore the newest `sepa-desk-*.zip` bundle found next to the project (once per bundle, after a backup of the current database, so re-running the installer never rolls your data back), start the server at logon/boot with auto-restart, and wait until it answers on :8765.
 3. Remote access with [Tailscale](https://tailscale.com) (free for personal use): install it on the PC and your phone/laptop, then on the PC run `tailscale serve --bg 8765`. Open `https://<pc-name>.<tailnet>.ts.net` from any of your devices and sign in with the token. Nothing is exposed to the public internet, TLS is automatic, and the server keeps listening on 127.0.0.1 only.
 4. Install Claude Code on the PC and run `claude` once to sign in, so the research jobs work unattended.
 5. Set the PC to never sleep while plugged in.

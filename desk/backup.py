@@ -48,7 +48,9 @@ def make_bundle(store, path):
                 continue
             for f in files:
                 full = os.path.join(dirpath, f)
-                if os.path.abspath(full) == path or f.endswith((".pyc", ".sqlite", ".sqlite-wal", ".sqlite-shm")):
+                # Dotfiles (.env holds SEPA_TOKEN) and other bundles never go in: the zip gets copied around.
+                if (os.path.abspath(full) == path or f.startswith(".")
+                        or f.endswith((".pyc", ".zip", ".sqlite", ".sqlite-wal", ".sqlite-shm"))):
                     continue
                 z.write(full, os.path.join("sepa-desk", os.path.relpath(full, ROOT)))
         for col in _collections(store):
@@ -76,6 +78,39 @@ def restore_bundle(store, path, overwrite=True):
             store.set(rel, json.loads(z.read(name)))
             n += 1
     return n
+
+
+MARKER = os.path.join(os.path.dirname(DB_PATH), ".restored")
+
+
+def find_bundle(dirs):
+    """Newest sepa-desk-*.zip in dirs, or None."""
+    found = [os.path.join(d, f) for d in dirs if os.path.isdir(d)
+             for f in os.listdir(d) if f.startswith("sepa-desk-") and f.endswith(".zip")]
+    return max(found, key=os.path.getmtime) if found else None
+
+
+def restore_once(store, dirs, marker=MARKER):
+    """Installer hook: restore the newest bundle only if it has not been restored on this machine before.
+
+    Re-running the installer after weeks of use must not roll the live database back to an old
+    bundle, so each bundle is restored once (name + size + mtime recorded in data/.restored), and
+    a backup of the current database is taken first whenever it already holds data.
+    """
+    path = find_bundle(dirs)
+    if not path:
+        return "No sepa-desk-*.zip bundle found; nothing to restore."
+    st = os.stat(path)
+    key = f"{os.path.basename(path)}\t{st.st_size}\t{int(st.st_mtime)}"
+    done = open(marker, encoding="utf-8").read().splitlines() if os.path.exists(marker) else []
+    if key in done:
+        return f"Bundle {os.path.basename(path)} was already restored here; skipped (use 'desk.py restore' to force)."
+    pre = run(store) if store.count() else "Database empty; no pre-restore backup needed."
+    n = restore_bundle(store, path)
+    os.makedirs(os.path.dirname(marker), exist_ok=True)
+    with open(marker, "a", encoding="utf-8") as fh:
+        fh.write(key + "\n")
+    return f"{pre}\nRestored {n} documents from {path}."
 
 
 def _collections(store):
